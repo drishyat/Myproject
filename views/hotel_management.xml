@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record model="ir.actions.act_window" id="room_list_action">
+        <field name="name">Rooms</field>
+        <field name="res_model">hotel.room</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">create first room</p>
+        </field>
+    </record>
+     <record model="ir.ui.view" id="room_list_view">
+      <field name="name">rooms_menu</field>
+      <field name="model">hotel.room</field>
+      <field name="arch" type="xml">
+        <tree string="Room List">
+          <field name="room_number_id"/>
+          <field name="bed_type"/>
+            <field name="avaliable_bed"/>
+          <field name="facility_ids"/>
+            <field name="currency_id"/>
+             <field name="rent"/>
+        </tree>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="room_form_view">
+      <field name="name">Room Form</field>
+      <field name="model">hotel.room</field>
+      <field name="arch" type="xml">
+        <form string="Room List">
+            <sheet>
+                <group>
+                    <group string="General">
+                        <field name="room_number_id" options="{'no_create': True, 'no_create_edit':True}"/>
+                        <field name="bed_type" options="{'no_create': True, 'no_create_edit':True}"/>
+<!--                        <field name="trial"/>-->
+                        <field name="avaliable_bed" attrs="{'invisible': [('bed_type', '!=', 'dormitory')]}"/>
+                    </group>
+                    <group string="details">
+                        <field name="facility_ids" widget="many2many_tags" options="{'no_create': True, 'no_create_edit':True}"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="rent" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                    </group>
+                </group>
+            </sheet>
+        </form>
+      </field>
+    </record>
+     <record model="ir.actions.act_window" id="facility_list_action">
+        <field name="name">Facility type</field>
+        <field name="res_model">hotel.facility</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+     <record model="ir.ui.view" id="facility_list_view">
+      <field name="name">facility_menu</field>
+      <field name="model">hotel.facility</field>
+      <field name="arch" type="xml">
+        <tree string="Facility" editable="bottom">
+                <field name="facility"/>
+            </tree>
+      </field>
+    </record>
+     <record model="ir.actions.act_window" id="room_number_list_action">
+        <field name="name">Room type</field>
+        <field name="res_model">hotel.number</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.ui.view" id="room_number_list_view">
+      <field name="name">room_number_menu</field>
+      <field name="model">hotel.number</field>
+      <field name="arch" type="xml">
+        <tree string="Room Number" editable="bottom">
+                 <field name ="room_no"/>
+<!--         <field name="room_type"/>-->
+            </tree>
+      </field>
+    </record>
+    <record model="ir.actions.act_window" id="bed_type_list_action">
+        <field name="name">Bed type</field>
+        <field name="res_model">hotel.bed</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.ui.view" id="bed_type_list_view">
+      <field name="name">bed_type_menu</field>
+      <field name="model">hotel.bed</field>
+      <field name="arch" type="xml">
+        <tree string="Bed Type" editable="bottom">
+                 <field name ="bed_type_id"/>
+<!--         <field name="room_type"/>-->
+            </tree>
+      </field>
+    </record>
+    <record model="ir.actions.act_window" id="accomodation_list_action">
+         <field name="name">Accomodation</field>
+
+         <field name="res_model">hotel.accomodation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">create first accomodation</p>
+        </field>
+    </record>
+     <record model="ir.ui.view" id="accomodation_list_view">
+      <field name="name">accomodation_menu</field>
+      <field name="model">hotel.accomodation</field>
+      <field name="arch" type="xml">
+        <tree string="Accomodation List">
+            <field name="accomodation_id"/>
+            <field name="guest_id"/>
+            <field name="facility_id"/>
+            <field name="bed_id" optional="True"/>
+            <field name="state"/>
+
+        </tree>
+      </field>
+    </record>
+     <record model="ir.ui.view" id="accomodation_form_view">
+      <field name="name">accomodation.form</field>
+      <field name="model">hotel.accomodation</field>
+      <field name="arch" type="xml">
+        <form string="Accomodation List">
+            <header>
+                <button id="button_check_in" name="action_check_in" string="Check In " type="object" states="draft" class="btn-primary"/>
+                <button id="button_check_out" name="action_check_out" string="Check Out " type="object" states="check_in" class="btn-primary"/>
+                <button id="button_cancel" name="action_cancel" string="Cancel " type="object" states="check_in"/>
+
+                <field name="state" widget= "statusbar" statusbar_visible="draft,check_in,check_out"/>
+            </header>
+            <sheet>
+                <div class="oe_title">
+                      <h1>
+                         <field name="accomodation_id" readonly="1"></field>
+                      </h1>
+                </div>
+                <group>
+                <group>
+
+                    <field name="guest_id"/>
+                    <field name="no_of_guest"/>
+<!--                    <field name="guest_count"/>-->
+<!--                    <field name="attachment_count"/>-->
+                </group>
+                <group>
+                    <field name="check_in" states="draft,check_in,check_out"/>
+                    <field name="check_out" states="draft,check_in,check_out"/>
+                    <field name="expected_days" states="draft,check_in"/>
+                     <field name="expected_date" states="draft,check_in"/>
+                    <field name="facility_id" widget="many2many_tags" options="{'no_create': True, 'no_create_edit':True}"/>
+                    <field name="bed_id"/>
+                    <field name="room_id"/>
+
+                </group>
+                </group>
+                   <notebook>
+                    <page name="guest info" string="Guest Information">
+                        <field name="guest_line" mode="tree,kanban"
+                               attrs="{'readonly': [('state', 'in',
+                               ('check_in','check_out','cancel'))]}" id="hotel.guest.line">
+                            <tree string="Guest Info Lines" editable="bottom">
+                                <control>
+                                    <create name="add_guest" string="Add Guest"/>
+                                </control>
+                                    <field name="guest_name"/>
+                                    <field name="guest_gender"/>
+                                    <field name="guest_age"/>
+                                    <field name="guest_id" invisible="1"/>
+
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </sheet>
+            <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+        </form>
+      </field>
+    </record>
+
+    <menuitem id="main_hotel_room_management_menu" name="Hotel Room "></menuitem>
+    <menuitem id ="reception_menu" name="Reception" parent="main_hotel_room_management_menu"></menuitem>
+    <menuitem id="accomodation_menu" name="Accomodation" parent="reception_menu" action="accomodation_list_action"></menuitem>
+    <menuitem id ="configuration_menu" name="Configuration" parent="main_hotel_room_management_menu"></menuitem>
+    <menuitem id="room_menu" name="Room" parent="configuration_menu" action="room_list_action"></menuitem>
+    <menuitem id="bed_type_menu" name="Bed Type" parent="configuration_menu" action="bed_type_list_action"></menuitem>
+    <menuitem id="room_number_menu" name="Room Number" parent="configuration_menu" action="room_number_list_action"></menuitem>
+    <menuitem id="facility_menu" name="Facility" parent="configuration_menu" action="facility_list_action"></menuitem>
+</odoo>
