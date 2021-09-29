@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record model="ir.actions.act_window" id="room_list_action">
+        <field name="name">Rooms</field>
+        <field name="res_model">hotel.room</field>
+        <field name="view_mode">tree,form,search</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create first room</p>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="room_search_view">
+        <field name="name">room.search</field>
+        <field name="model">hotel.room</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="bed_type"/>
+                <separator/>
+                <filter string="Avaliable rooms" name="room_state"
+                        domain="[('state','=','avaliable')]"></filter>
+                <group expand="1" string="Group By">
+                    <filter string="Room Type" name="type"
+                            context="{'group_by':'bed_type'}"></filter>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="room_list_view">
+        <field name="name">rooms_menu</field>
+        <field name="model">hotel.room</field>
+        <field name="arch" type="xml">
+            <tree string="Room List">
+                <field name="room_number_id"/>
+                <field name="bed_type"/>
+                <field name="avaliable_bed"/>
+                <field name="facility_ids"/>
+                <field name="currency_id"/>
+                <field name="rent"/>
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="room_form_view">
+        <field name="name">Room Form</field>
+        <field name="model">hotel.room</field>
+        <field name="arch" type="xml">
+            <form string="Room List">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="avaliable,not_avaliable"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="General">
+                            <field name="room_number_id"
+                                   options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="bed_type"
+                                   options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="avaliable_bed"
+                                   attrs="{'invisible': [('bed_type', '!=', 'dormitory')]}"/>
+                        </group>
+                        <group string="details">
+                            <field name="facility_ids" widget="many2many_tags"
+                                   options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="rent" class="oe_inline"
+                                   widget="monetary"
+                                   options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="facility_list_action">
+        <field name="name">Facility type</field>
+        <field name="res_model">hotel.facility</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.ui.view" id="facility_list_view">
+        <field name="name">facility_menu</field>
+        <field name="model">hotel.facility</field>
+        <field name="arch" type="xml">
+            <tree string="Facility" editable="bottom">
+                <field name="facility"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="room_number_list_action">
+        <field name="name">Room type</field>
+        <field name="res_model">hotel.number</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.ui.view" id="room_number_list_view">
+        <field name="name">room_number_menu</field>
+        <field name="model">hotel.number</field>
+        <field name="arch" type="xml">
+            <tree string="Room Number" editable="bottom">
+                <field name="room_no"/>
+                <!--         <field name="room_type"/>-->
+            </tree>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="bed_type_list_action">
+        <field name="name">Bed type</field>
+        <field name="res_model">hotel.bed</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.ui.view" id="bed_type_list_view">
+        <field name="name">bed_type_menu</field>
+        <field name="model">hotel.bed</field>
+        <field name="arch" type="xml">
+            <tree string="Bed Type" editable="bottom">
+                <field name="bed_type_id"/>
+                <!--         <field name="room_type"/>-->
+            </tree>
+        </field>
+    </record>
+
+<menuitem id="room_menu"
+              name="Room"
+              parent="configuration_menu"
+              action="room_list_action"
+              sequence="5">
+    </menuitem>
+    <menuitem id="bed_type_menu"
+              name="Bed Type"
+              parent="configuration_menu"
+              action="bed_type_list_action"
+              sequence="7">
+    </menuitem>
+    <menuitem id="room_number_menu"
+              name="Room Number"
+              parent="configuration_menu"
+              action="room_number_list_action"
+              sequence="8">
+    </menuitem>
+    <menuitem id="facility_menu"
+              name="Facility"
+              parent="configuration_menu"
+              action="facility_list_action"
+              sequence="9">
+    </menuitem>
+    </odoo>

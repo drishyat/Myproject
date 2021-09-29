@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record model="ir.actions.act_window" id="guest_list_action">
+        <field name="name">Guest list</field>
+        <field name="res_model">hotel.guest.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.ui.view" id="guest_list_view">
+        <field name="name">guest_menu</field>
+        <field name="model">hotel.guest.line</field>
+        <field name="arch" type="xml">
+            <tree string="Guest" editable="bottom">
+                <field name="guest_name"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="accomodation_list_action">
+        <field name="name">Accomodation</field>
+        <field name="res_model">hotel.accomodation</field>
+        <field name="view_mode">tree,form,search</field>
+        <field name="context">{'search_default_today_expected_filter':1,
+            'search_default_states_filter':1}
+        </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">create first accomodation
+            </p>
+        </field>
+        <field name="res_model">hotel.accomodation</field>
+        <field name="view_mode">tree,form,search</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">create first accomodation
+            </p>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="accomodation_search_view">
+        <field name="name">accomodation.search</field>
+        <field name="model">hotel.accomodation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="room_id"/>
+                <field name="guest_id"/>
+                <field name="accomodation_id"/>
+                <separator/>
+                <filter string="Check In" name="check_in_filter"
+                        domain="[('state','=','check_in')]"/>
+                <filter string="States" name="states_filter"
+                        domain="[('state','!=','cancel')]"/>
+                <filter string="Current Date Checkouts" name="check_out_filter"
+                        domain="[('check_out','&lt;=',
+                    (datetime.date.today()).strftime('%Y-%m-%d')),('check_out',
+                    '&gt;=',(datetime.date.today()).strftime('%Y-%m-%d'))]"/>
+                <filter string="Next Day Expecting Checkouts"
+                        name="next_day_check_out"
+                        domain="[('expected_date','&gt;=',
+                    ((context_today()+datetime.timedelta(days=1)).
+                    strftime('%Y-%m-%d'))),('expected_date','&lt;=',
+                    ((context_today()+datetime.timedelta(days=1)).
+                    strftime('%Y-%m-%d'))),('state','!=','check_out')]"/>
+                <filter string="Today Expecting Checkouts"
+                        name="today_expected_filter"
+                        domain="[('expected_date','&lt;=',
+                    (datetime.date.today()).strftime('%Y-%m-%d')),
+                    ('expected_date','&gt;=',
+                    (datetime.date.today()).strftime('%Y-%m-%d')),
+                    ('state','!=','check_out')]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Room" name="room"
+                            context="{'group_by':'room_id'}"></filter>
+                    <filter string="Room Type" name="room_type"
+                            context="{'group_by':'bed_id'}"></filter>
+                    <filter string="Room Status" name="room_state"
+                            context="{'group_by':'state'}"></filter>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="accomodation_list_view">
+        <field name="name">accomodation_menu</field>
+        <field name="model">hotel.accomodation</field>
+        <field name="arch" type="xml">
+            <tree string="Accomodation List">
+                <!--                <tree string="Accomodation List" colors="red:expected_date &lt;= datetime.date.today();"></tree>>-->
+                <field name="accomodation_id"/>
+                <field name="guest_id"/>
+                <field name="facility_id"/>
+                <field name="bed_id" optional="True"/>
+                <field name="state"/>
+
+
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="accomodation_form_view">
+        <field name="name">accomodation.form</field>
+        <field name="model">hotel.accomodation</field>
+        <field name="arch" type="xml">
+            <form string="Accomodation List">
+                <header>
+                    <button id="button_check_in" name="action_check_in"
+                            string="Check In " type="object" states="draft"
+                            class="btn-primary"/>
+                    <button id="button_check_out" name="action_check_out"
+                            string="Check Out " type="object" states="check_in"
+                            class="btn-primary"/>
+                     <button id="button_invoice" name="action_invoice"
+                            string="Invoice " type="object" states="check_out"
+                            class="btn-primary"/>
+                    <button id="button_cancel" name="action_cancel"
+                            string="Cancel"
+                            type="object" states="check_in"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,check_in,check_out"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="accomodation_id" readonly="1"></field>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+
+                            <field name="guest_id"/>
+                            <field name="no_of_guest"/>
+                            <field name="facility_id" widget="many2many_tags"
+                                   options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="bed_id"/>
+                            <field name="room_id"/>
+                            <field name="expected_days"
+                                   states="draft,check_in"/>
+
+                        </group>
+                        <group>
+                            <field name="check_in"
+                                   states="draft,check_in,check_out"/>
+                            <field name="check_out"
+                                   states="draft,check_in,check_out"/>
+                            <field name="expected_date"
+                                   states="draft,check_in"/>
+
+
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="guest info" string="Guest Information">
+                            <field name="guest_line" mode="tree,kanban"
+                                   attrs="{'readonly': [('state', 'in',
+                               ('check_in','check_out','cancel'))]}"
+                                   id="hotel.guest.line">
+                                <tree string="Guest Info Lines"
+                                      editable="bottom">
+                                    <control>
+                                        <create name="add_guest"
+                                                string="Add Guest"/>
+                                    </control>
+                                    <field name="guest_name"/>
+                                    <field name="guest_gender"/>
+                                    <field name="guest_age"/>
+                                    <field name="guest_id" invisible="1"/>
+
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="payment" string="Payment Information">
+
+                        </page>
+                    </notebook>
+                    <div>
+
+                    </div>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <menuitem
+            id="main_hotel_room_management_menu"
+            name="Hotel Room ">
+    </menuitem>
+    <menuitem
+            id="reception_menu"
+            name="Reception"
+            parent="main_hotel_room_management_menu">
+
+    </menuitem>
+    <menuitem
+            id="accomodation_menu"
+            name="Accomodation"
+            parent="reception_menu"
+            action="accomodation_list_action">
+    </menuitem>
+
+    <menuitem id="configuration_menu"
+              name="Configuration"
+              parent="main_hotel_room_management_menu">
+
+    </menuitem>
+    <menuitem id="guest_menu"
+              name="Guest"
+              parent="configuration_menu"
+              action="guest_list_action"
+              sequence="12">
+    </menuitem>
+</odoo>
