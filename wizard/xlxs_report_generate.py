@@ -15,18 +15,19 @@ except ImportError:
 class ExcelWizard(models.TransientModel):
     _name = "xlsx.report.wizard"
 
-    guest_id = fields.Many2one('res.partner', string="Guest")
-    from_date = fields.Date(string="From Date")
-    to_date = fields.Date(string="To Date")
+
 
     def print_xlsx(self):
         # if self.start_date > self.end_date:
         #     raise ValidationError('Start Date must be less than End Date')
-        data = {
-            'start_date': self.from_date,
-            'end_date': self.to_date,
-            'guest_id': self.guest_id
-        }
+        # data = {
+        #     'start_date': self.from_date,
+        #     'end_date': self.to_date,
+        #     'guest_id': self.guest_id
+        # }
+        guest_id = fields.Many2one('res.partner', string="Guest")
+        from_date = fields.Date(string="From Date")
+        to_date = fields.Date(string="To Date")
         query = 'SELECT acc.accomodation_id,acc.check_in,acc.check_out,' \
                 'res.name,num.room_no  FROM hotel_accomodation acc INNER JOIN ' \
                 'res_partner res ON (acc.guest_id = res.id) ' \
@@ -49,54 +50,54 @@ class ExcelWizard(models.TransientModel):
             query = query + " where check_out<'%s'" % (to_date)
         elif guest_id:
             query = query + " where guest_id ='%d'" % (guest_id)
-        return {
-            'type': 'ir.actions.report',
-            'data': {'model': 'xlsx.report.wizard',
-                     'options': json.dumps(data,
-                                           default=date_utils.json_default),
-                     'output_format': 'xlsx',
-                     'report_name': 'Excel Report',
-                     },
-            'report_type': 'xlsx',
-        }
+        # return {
+        #     'type': 'ir.actions.report',
+        #     'data': {'model': 'xlsx.report.wizard',
+        #              'options': json.dumps(data,
+        #                                    default=date_utils.json_default),
+        #              'output_format': 'xlsx',
+        #              'report_name': 'Excel Report',
+        #              },
+        #     'report_type': 'xlsx',
+        # }
 
     def get_xlsx_report(self, data, response):
         output = io.BytesIO()
 
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    user_obj = self.env.user
-    sheet = workbook.add_worksheet('Accomodation XLS')
-    heading = workbook.add_format(
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        user_obj = self.env.user
+        sheet = workbook.add_worksheet('Accomodation XLS')
+        heading = workbook.add_format(
         {'font_size': 20, 'align': 'center', 'bold': True})
-    format = workbook.add_format(
+        format = workbook.add_format(
         {'font_size': 10, 'align': 'left'})
-    format1 = workbook.add_format(
+        format1 = workbook.add_format(
         {'font_size': 10, 'align': 'left', 'bold': True})
-    sheet.merge_range('A1:C1', user_obj.company_id.name, format)
-    sheet.merge_range('A2:C2', user_obj.company_id.street, format)
-    sheet.merge_range('A3:C3', user_obj.company_id.city, format)
-    sheet.write('B3', user_obj.company_id.zip, format)
-    sheet.merge_range('A4:C4', user_obj.company_id.state_id.name,
-                      format)
-    sheet.merge_range('A5:C5', user_obj.company_id.country_id.name,
-                      format)
-    sheet.merge_range('C7:I8', 'SL No', heading)
-    sheet.write('B9', 'From', format)
-    sheet.merge_range('C9:D9', 'start_date', format)
-    sheet.write('F11', 'To', format)
-    sheet.merge_range('G11:H11', 'end_date', format)
-    sheet.merge_range('B13:C13', 'Guest_id', format1)
-    sheet.merge_range('D13:E13', "Room No", format1)
-    row = 14
-    for rec in data['data']:
-        sheet.write('B' + str(row), rec[''])
-        sheet.write('B' + str(row), rec['accomodation_id'])
-        sheet.write('D' + str(row), rec['check_in'])
-        sheet.write('F' + str(row), rec['check_out'])
-        sheet.write('F' + str(row), rec['name'])
-        sheet.write('F' + str(row), rec['room_no'])
+        sheet.merge_range('A1:C1', user_obj.company_id.name, format)
+        sheet.merge_range('A2:C2', user_obj.company_id.street, format)
+        sheet.merge_range('A3:C3', user_obj.company_id.city, format)
+        sheet.write('B3', user_obj.company_id.zip, format)
+        sheet.merge_range('A4:C4', user_obj.company_id.state_id.name,
+                          format)
+        sheet.merge_range('A5:C5', user_obj.company_id.country_id.name,
+                          format)
+        sheet.merge_range('C7:I8', 'SL No', heading)
+        sheet.write('B9', 'From', format)
+        sheet.merge_range('C9:D9', 'start_date', format)
+        sheet.write('F11', 'To', format)
+        sheet.merge_range('G11:H11', 'end_date', format)
+        sheet.merge_range('B13:C13', 'Guest_id', format1)
+        sheet.merge_range('D13:E13', "Room No", format1)
+        row = 14
+        for rec in data['data']:
+            sheet.write('B' + str(row), rec[''])
+            sheet.write('B' + str(row), rec['accomodation_id'])
+            sheet.write('D' + str(row), rec['check_in'])
+            sheet.write('F' + str(row), rec['check_out'])
+            sheet.write('F' + str(row), rec['name'])
+            sheet.write('F' + str(row), rec['room_no'])
 
-        row += 1
+            row += 1
     row += 1
     sheet.merge_range(row, 0, row, 1,
                       user_obj.company_id.phone, format)
