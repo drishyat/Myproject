@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <record model="ir.ui.view" id="validate_tolerance_wizard">
+        <field name="name">validate.tolerance.wizard.form</field>
+        <field name="model">validate.tolerance.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Validate Tolerance Range">
+                <group>
+                    <p>Tolerance Range <i>not met</i>.
+                    </p>
+                </group>
+                <footer>
+                    <button name ="accept"
+                            type="object"
+                            string="Accept"
+                            class="oe_highlight"/>
+                    <button name="reject"
+                            string="Dont Accept"
+                            special="cancel"
+                            type="object" class="oe_highlight"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

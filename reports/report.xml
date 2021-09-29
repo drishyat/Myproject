@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+    <record id="generate_report" model="ir.actions.report">
+         <field name="name">Generate Report</field>
+         <field name="model">hotel.accomodation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hotel_demo.report_id_accomodation</field>
+        <field name="report_file">hotel_demo.report_id_accomodation</field>
+        <field name="binding_model_id" ref = "model_hotel_accomodation"></field>
+        <field name="binding_type">report</field>
+    </record>
+</data>
+</odoo>

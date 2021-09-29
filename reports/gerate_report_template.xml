@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <template id="report_id_accomodation">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="oe_structure"/>
+                    <div class="text-center">
+                        <h2>Hotel Room Management</h2>
+                    </div>
+                    <t t-set="is_guest" t-value="0"/>
+                    <t t-if="form_data.get('guest_id')">
+                    <t t-set="is_guest" t-value="1"/>
+                    </t>
+                     <t t-set="is_from_date" t-value="0"/>
+                    <t t-if="form_data.get('from_date')">
+                    <t t-set="is_from_date" t-value="1"/>
+                    </t>
+                     <t t-set="is_to_date" t-value="0"/>
+                     <t t-if="form_data.get('to_date')">
+                    <t t-set="is_to_date" t-value="1"/>
+                    </t>
+                    <table>
+                    <tr>
+                    <t t-if="is_guest">
+                    <td>Customer</td>
+                    <td>:</td>
+                    <td>
+                    <t t-esc="form_data['guest_id'][1]"/>
+                    </td>
+                    </t>
+                    </tr>
+                    <tr>
+                    <t t-if="is_from_date">
+                    <td>Date From</td>
+                    <td>:</td>
+                    <td>
+                    <t t-esc="form_data['from_date']"/>
+                    </td>
+                    </t>
+                    </tr>
+                    <tr>
+                    <t t-if="is_to_date">
+                    <td>Date To</td>
+                    <td>:</td>
+                    <td>
+                    <t t-esc="form_data['to_date']"/>
+                    </td>
+                     </t>
+                    </tr>
+                    <tr>
+                    <t t-if="not is_to_date and not is_from_date" >
+                    <td>Date </td>
+                    <td>:</td>
+                    <td>
+                    <t t-esc="time.strftime('%Y-%m-%d')"/>
+                    </td>
+                     </t>
+                    </tr>
+                    </table>
+                    <br/>
+                    <table class="table table-bordered mt32">
+                    <thead>
+                    <tr>
+
+                    <th name="th_accomodation_id" class="text-left">
+                    <span>Reference</span>
+                    </th>
+
+                    <th name="th_check_in" class="text-left">
+                    <span>Check In</span>
+                    </th>
+                    <th name="th_check_out" class="text-left">
+                    <span>Check Out</span>
+                    </th>
+                    <th name="th_room_id" class="text-left">
+                    <span>Room Number</span>
+                    </th>
+                    <t t-if="not is_guest">
+                    <th name="th_guest_id" class="text-left">
+                    <span>Customer</span>
+                    </th>
+                    </t>
+                    </tr>
+                    </thead>
+                    <t t-foreach="data" t-as="line">
+                    <tr>
+                     <td>
+                    <t t-esc="line['accomodation_id']"/>
+                    </td>
+                     <td>
+                    <t t-esc="line['check_in']"/>
+                    </td>
+                     <td>
+                    <t t-esc="line['check_out']"/>
+                    </td>
+                    <td>
+                    <t t-esc="line['room_no']"/>
+                    </td>
+                    <t t-if="not is_guest">
+                    <td>
+                    <t t-esc="line['name']"/>
+                    </td>
+                    </t>
+
+                    </tr>
+                    </t>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

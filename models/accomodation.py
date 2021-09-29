@@ -9,45 +9,124 @@ class Accomodation(models.Model):
     _name = 'hotel.accomodation'
     _inherit = ["mail.thread", 'mail.activity.mixin']
     _description = 'Accomodation Management'
+    _order = "check_in desc"
     _rec_name = 'accomodation_id'
 
-    bed_id = fields.Many2one('hotel.bed', string="Bed type")
-    room_id = fields.Many2one('hotel.room', string="Room Id")
+    facility_id = fields.Many2many('hotel.facility', string="Facility")
+    bed_id = fields.Selection([('single', 'Single'), ('double', 'Double'),
+                               ('dormitory', 'Dormitory')],
+                              string="Bed Types")
+    room_id = fields.Many2one('hotel.room', string="Room Number")
+
+    room_rent = fields.Monetary(related='room_id.rent', string="Room Rent",
+                                currency_field="currency_id")
+
+    company_id = fields.Many2one('res.company', 'Company',
+                                 default=lambda
+                                     self: self.env.user.company_id.id, index=1)
+    currency_id = fields.Many2one('res.currency', 'Currency',
+                                  default=lambda
+                                      self: self.env.user.company_id.currency_id.id)
+    no_of_days = fields.Integer(string="No of Days of Stay",
+                                compute='_compute_days',
+                                store=True)
+    rent = fields.Monetary(string="Rent",
+                           compute='_compute_rent',
+                           store=True, currency_field="currency_id")
 
     @api.onchange('bed_id')
-    def onchange_bed_id(self):
-        return {'domain': {'room_id': [('bed_type', '=',
-                                        self.bed_id.bed_type_id)]}}
+    def _compute_room(self):
+        lst = []
+        # if self.facility_id and self.bed_id:
+        for rec in self.facility_id:
+            print(rec.facility)
+            lst.append(rec.facility)
+            print('lst', lst)
+        return {'domain': {'room_id': ['&', '&', ('bed_type', '=',
+                                                  self.bed_id),
+                                       ('state', '=', 'avaliable'),
+                                       ('facility_ids.facility', 'in', lst)]}}
+        # for i in lst:
 
-    facility_id = fields.Many2many('hotel.facility', string="Facility")
+    @api.depends('no_of_days', 'room_rent')
+    def _compute_rent(self):
+        for rec in self:
+            if rec.no_of_days:
+                rec.rent = rec.no_of_days * rec.room_rent
+                print(rec.rent)
 
-    # @api.onchange('facility_id')
-    # def onchange_facility_id(self):
+            else:
+                rec.rent = False
+
+    # @api.onchange('bed_id')
+    # def onchange_bed_id(self):
     #     return {'domain': {'room_id': [('bed_type', '=',
-    #                                     self.bed_id.bed_type_id)]}}
-    check_in = fields.Datetime(string="Check In Time", readonly="True",
-                               default=fields.datetime.now())
+    #                                     self.bed_id),
+    #                                    ('state', '=', 'avaliable'),
+    #                                    ('facility_ids', '=',
+    #                                     self.facility_id.facility)
+    #                                    ]}}
+
+    check_in = fields.Datetime(string="Check In Time", readonly="True")
     check_out = fields.Datetime(string="Check Out Time", readonly="True")
-    expected_days = fields.Integer(string="Expected No of Days", default=0)
+    expected_days = fields.Integer(string="Expected No of Days")
     expected_date = fields.Datetime(string="Expected Date",
-                                    compute='_compute_expected_date')
+                                    compute='_compute_expected_date',
+                                    store=True)
+
+    current_date = fields.Datetime(string="current date",
+                                   default=fields.Datetime.today())
+    warning_date = fields.Boolean(string="Expected date check",
+                                  compute='check_expected_date', default=False)
 
     @api.depends('expected_days', 'check_in')
     def _compute_expected_date(self):
-        self.expected_date = fields.Datetime.from_string(
-            self.check_in) + timedelta(days=self.expected_days)
+        for rec in self:
+            if rec.expected_days and rec.check_in:
+                rec.expected_date = fields.Datetime.from_string(rec.check_in) \
+                                    + timedelta(days=rec.expected_days)
+            else:
+                self.expected_date = False
+
+    @api.depends('expected_date')
+    def check_expected_date(self):
+        today = fields.Datetime.today()
+        print(today)
+        booking_all = self.env['hotel.accomodation'].search([])
+        print(booking_all)
+        for rec in booking_all:
+            expected_date = fields.Date.to_string(rec.expected_date)
+            expected_date_comp = datetime.strptime(expected_date,
+                                                   '%Y-%m-%d').date()
+            print(expected_date_comp)
+            today_date = fields.Date.to_string(today)
+            today_day = datetime.strptime(today_date, '%Y-%m-%d').date()
+            print(today_day)
+
+            if expected_date_comp != today_day:
+                rec.warning_date = False
+                print(rec.warning_date)
+
+            else:
+                rec.warning_date = True
+                print(rec.warning_date)
 
     state = fields.Selection([('draft', 'Draft'), ('check_in', 'Check In'),
-                              ('check_out', 'Check Out'), ('cancel', 'Cancel')],
+                              ('check_out', 'Check Out'), ('cancel', 'Cancel'),
+                              ('invoiced', 'Invoiced')],
                              default='draft')
     no_of_guest = fields.Integer(string="No of Guests")
 
     guest_id = fields.Many2one('res.partner', string="Guest", required=True)
     guest_line = fields.One2many('hotel.guest.line', 'guest_id',
                                  string="Guest Line")
+    payment_line = fields.One2many('hotel.payment.line', 'payment_id',
+                                   string="Guest Line")
     guest_count = fields.Integer(string='Count', compute='get_guest_count',
                                  default=0)
-    attachment_count = fields.Integer(compute='count_attachments')
+    attachment_count = fields.Integer(compute='count_attachments',
+                                      string="Attachment Count")
+    invoice_id = fields.Many2one('account.move')
 
     def get_guest_count(self):
         for rec in self:
@@ -66,9 +145,15 @@ class Accomodation(models.Model):
             if attachment_ids:
                 record.attachment_count = len(attachment_ids)
 
+    payment_line_ids = fields.One2many('hotel.food', 'room_no',
+                                       string="Payment Line")
+
     def action_check_in(self):
         self.state = 'check_in'
         self.check_in = fields.datetime.now()
+        # for rec in self:
+        #     if rec.state == 'check_in':
+        self.room_id.state = 'not_avaliable'
 
         if self.attachment_count == 0:
             raise ValidationError(_("Please attach your documents"))
@@ -78,19 +163,73 @@ class Accomodation(models.Model):
     def action_check_out(self):
         self.state = 'check_out'
         self.check_out = fields.datetime.now()
+        self.room_id.state = 'avaliable'
+
+    @api.depends('check_in', 'check_out')
+    def _compute_days(self):
+        for rec in self:
+            check_in = fields.Date.to_string(rec.check_in)
+            check_out = fields.Date.to_string(rec.check_out)
+            if check_in and check_out:
+                check_in_day = datetime.strptime(check_in, '%Y-%m-%d').date()
+                check_out_day = datetime.strptime(check_out, '%Y-%m-%d').date()
+                if check_out_day > check_in_day:
+                    rec.no_of_days = (check_out_day - check_in_day).days
+                    print(rec.no_of_days)
+                else:
+                    rec.no_of_days = 1
+                    print(rec.no_of_days)
+
+    def action_invoice(self):
+        # self.state = 'invoiced'
+        self.ensure_one()
+        invoice_vals = {
+            'move_type': 'out_invoice',
+            'partner_id': self.guest_id.id,
+            'invoice_origin': self.accomodation_id,
+            'invoice_date': self.current_date,
+            'date': self.current_date,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Rent',
+                'quantity': self.no_of_days,
+                'price_unit': self.rent,
+
+            })],
+        }
+        for order in self.payment_line:
+            invoice_line_vals = {
+                'name': order.description_id,
+                'quantity': order.quantity,
+                'price_unit': order.price,
+
+            }
+            invoice_vals['invoice_line_ids'].append((0, 0, invoice_line_vals))
+
+        invoice = self.env['account.move'].create(invoice_vals)
+        self.invoice_id = invoice
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Invoice',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': invoice.id,
+            'target': 'current',
+            'action': 'Invoice_action',
+        }
 
     def action_cancel(self):
         self.state = 'cancel'
+        self.room_id.state = 'avaliable'
 
     accomodation_id = fields.Char(string='Accomodation Order', required=True,
                                   copy=False, readonly=True,
                                   default=lambda self: _('New'))
-    note = fields.Text(string="description")
+    _sql_constraints = [('fields_unique', 'unique(accomodation_id)',
+                         'choose another value for accomodation id')]
 
     @api.model
     def create(self, vals):
-        if not vals.get('note'):
-            vals['note'] = 'New Accomodation'
         if vals.get('accomodation_id', _('New')) == _('New'):
             vals['accomodation_id'] = self.env['ir.sequence'].next_by_code(
                 'hotel.accomodation') or _('New')
@@ -106,3 +245,47 @@ class Guest(models.Model):
                                     string="Gender")
     guest_age = fields.Integer(string="Age")
     guest_id = fields.Many2one('hotel.accomodation', string="Accomodation ID")
+
+
+class Payment(models.Model):
+    _name = 'hotel.payment.line'
+    _description = 'Payment Line'
+
+    product_id = fields.Many2one('hotel.food.item', string="Product")
+    description_id = fields.Char(related="product_id.description",
+                                 string="Description")
+    quantity = fields.Integer(string="Quantity")
+    uom = fields.Char(string="UOM", default='unit')
+    unit = fields.Char(string="Unit", default='unit')
+    unit_category_id = fields.Many2one(
+        related='product_id.unit_category_id',
+        string="Unit of measure category")
+    unit_id = fields.Many2one(
+        related='product_id.unit_id',
+        string="Unit of Measure")
+    company_id = fields.Many2one('res.company', 'Company',
+                                 default=lambda
+                                     self: self.env.user.company_id.id, index=1)
+    currency_id = fields.Many2one('res.currency', 'Currency',
+                                  default=lambda
+                                      self: self.env.user.company_id.currency_id.id)
+    price = fields.Monetary(related='product_id.price',
+                            currency_field="currency_id",
+                            string="Price")
+    sub_total = fields.Monetary(default="0", string="Sub Total",
+                                currency_field="currency_id")
+    food_id = fields.Many2one('hotel.food', string="Food ID")
+    payment_id = fields.Many2one('hotel.accomodation', string="Accomodation ID")
+
+
+class InvoiceConfirm(models.Model):
+    _inherit = "account.move"
+
+    def action_post(self):
+
+        origin_id = self.invoice_origin
+        acc_id = self.env['hotel.accomodation'].search(
+            [('accomodation_id', '=', origin_id)])
+        acc_id.state = "invoiced"
+        res = super(InvoiceConfirm, self).action_post()
+        return res

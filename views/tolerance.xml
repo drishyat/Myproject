@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+  <record id="view_partner_form_inherit" model="ir.ui.view" >
+        <field name="name">res.partner.inherited</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref ="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr = "//field[@name='function']" position="after">
+                <field name="tolerance"></field>
+            </xpath>
+        </field>
+    </record>
+
+      <record id="view_sale_order_line_form_inherit" model="ir.ui.view" >
+        <field name="name">sale.order.inherited</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref ="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr = "/form/sheet/notebook/page/field[@name='order_line']/tree/field[@name='name']" position="after">
+                <field name="tolerance_val"></field>
+            </xpath>
+        </field>
+    </record>
+
+
+
+
+</odoo>

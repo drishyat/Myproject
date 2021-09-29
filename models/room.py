@@ -7,14 +7,15 @@ class Room(models.Model):
     _rec_name = 'room_number_id'
 
     room_number_id = fields.Many2one('hotel.number', string="Room Numbers")
-    # bed_type = fields.Many2one('hotel.bed',string="Bed type")
-
     bed_type = fields.Selection([('single', 'Single'), ('double', 'Double'),
                                  ('dormitory', 'Dormitory')],
                                 string="Bed Types")
-    # trial= fields.Selection([('a','A'),('b','B')],string="trial")
     avaliable_bed = fields.Integer()
     facility_ids = fields.Many2many('hotel.facility', string="Facility")
+    # unit_category_id = fields.Many2one('hotel.unit.category',
+    #                                    string="UOM Category")
+    # unit_id = fields.Many2one('hotel.unit',
+    #                           string="Unit of Measure")
     company_id = fields.Many2one('res.company', 'Company',
                                  default=lambda
                                      self: self.env.user.company_id.id, index=1)
@@ -24,6 +25,9 @@ class Room(models.Model):
                                   required=True)
 
     rent = fields.Monetary(string="Room Rent", currency_field='currency_id')
+    state = fields.Selection([('avaliable', 'Avaliable'),
+                              ('not_avaliable', 'Not Avaliable')],
+                             default='avaliable')
 
 
 class Facility(models.Model):
@@ -39,13 +43,7 @@ class RoomNo(models.Model):
     _description = 'Room Number Management'
     _rec_name = 'room_no'
 
-    room_no = fields.Char("Enter room number")
-    # bed_type = fields.Many2one('hotel.room', string="bed type")
+    room_no = fields.Char("Room Number")
 
 
-class BedType(models.Model):
-    _name = 'hotel.bed'
-    _description = 'Bed Type Management'
-    _rec_name = 'bed_type_id'
 
-    bed_type_id = fields.Char("Enter bed_type")
